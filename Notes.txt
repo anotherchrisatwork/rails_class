@@ -1,0 +1,172 @@
+Creating a Rails app.
+
+First, you have to have Ruby 2.x, and the rails gem installed.
+
+Did:
+
+  - echo '.gems' > .rbenv-gemsets
+  - mkdir .gems
+  - gem install rails
+  - export PATH=${PATH}:`pwd`/.gems/bin
+
+To set up rails, and our environment.
+
+Then:
+
+  - rails new recipes --skip-bundle --skip-spring --skip-turbolinks \
+    --skip-active-storage --skip-test --skip-coffee
+  - cd recipes
+  - EDIT Gemfile to use our path to ruby gems server
+  - echo '../.gems' > .rbenv-gemsets
+  - bundle install
+  - rails server
+    - or rails s
+    - running on port 3000
+    - intro page
+
+Initial overview of the Rails universe, and the basic "rails way".
+
+  1 routes, controller, action, models, view
+  2 show "rails generate" and "rails g" both work, talk about help
+  3 create a simple controller, action, and view, no model yet
+
+Did:
+
+  - rails generate controller welcome index
+    - talk about files created
+    - or rails g
+  - rails s
+  - go to http://localhost:3000/welcome/index
+
+Talk about routes.rb
+
+  - show it, show new route, 'welcome#index' vs. 'welcome/index'
+  - rake routes
+  - add "root to: 'welcome#index'"
+  - rails s
+  - go to http://localhost:3000/
+    - wow, now no intro page!
+    - previous route still works.
+
+Talk about app/controllers/welcome_controller.rb
+
+  1 and app/controllers/application_controller.rb
+  2 add "@now = Time.now" to index method
+  3 add "It is now about <%= @now %>" to welcome.html.erb
+  4 Code on server runs, shown to user on page.  Show page source.
+    - Rails generates all page on the server, only sends final HTML.
+
+Talk about app/views/layouts/application.html.erb
+
+  1 <%= yield %>
+  2 Add something banner-ish
+
+Talk about helpers
+
+Talk about assets -- images, application.js, application.css welcome.js, welcome.scss
+
+Why would you create a "stand alone" controller/action/view?
+
+  1 Intro page
+  2 Help
+  3 etc.
+
+Resources
+
+  - rails g scaffold recipe title:string:index description:text
+
+What did this create?
+
+  3 Routes -- show
+    - rake routes
+    - seven actions, eight routes, PATCH and PUT -> update
+    - browsers only do GET and POST (still?)
+  4 app/controllers/recipes_controller.rb -- show
+  5 app/views/recipes -- tree
+  6 talk about helpers, jbuilder, recipes.js and recipes.scss
+  7 app/assets/stylesheets/scaffolds.scss -- place-holder, in a way.
+  1 Database migration -- show
+    - rake db:migrate
+    - sqlite3 db/development.sqlite3
+      - .tables
+      - .schema recipes, with added columns:
+        - id field
+        - created_at, updated_at
+  2 Model -- show
+  8 route prefixes
+    - add <%= link_to "Recipes", recipes_path %> in welcome/index.html.erb
+    - fonts, layout changed!  Remember scaffold.scss?
+  9 Follow link to recipes page
+    - CRUD some recipes
+      - Show notifications
+      - note JS verification of destroy
+    - sqlite3 db/development.sqlite3
+      - select * from recipes;
+  10 Add last update Time to list
+  11 Look at controller, talk about params, white-listed param keys
+
+Validation
+
+  1 Create a recipe with no title -- no problem!
+  2 Visit www.rubyonrails.org, visit guides, find validations one.
+  3 Add basic validation to title and description, show in app that they're run
+    validates :title, presence: true
+    validates :description, presence: true
+  4 Talk about some others
+
+Redirection
+
+  1 Don't like the "Create -> Show -> List"
+  2 Set up different "redirect_to" in controller
+  3 Show how creation goes directly to list
+  4 Mention "Do you want to resubmit the form?" bug Rails doesn't have
+
+Database access
+
+  1 Show controller actions, things like "@recipes = Recipe.all"
+
+JSON, for API usage
+
+  1 Show "curl" returning JSON
+    - curl -s http://localhost:3000/recipes.json ; echo
+    - curl -s http://localhost:3000/recipes/3.json ; echo
+    - Edit _recipe.json.jbuilder, remove :created_at, redo last curl
+
+before_action
+
+  1 Retrieve the current recipe, but only for certain actions
+
+recipe_params
+
+  1 Helper-type function to "permit" only some fields, so people can't hand in
+    created_at, etc.
+
+Retrieving stuff with ActiveRecord
+
+  1 scopes
+    scope :has_t, -> { where("title like ?", "%t%") }
+  2 find_by_{field}
+  3 find_by_sql
+
+Adding a path to our resource
+
+  1 Member route
+    resources :photos do
+      member do
+        get 'preview'
+      end
+    end
+  2 Collection route
+    resources :photos do
+      collection do
+        get 'search'
+      end
+    end
+  - <%= text_field_tag "search", nil, placeholder: "What to search for" %>
+  - <%= submit_tag "Search" %>
+  - @found = Recipe.where("title like ?", "%" + params[:search] + "%").all
+  - @last_search = session[:search] || ""
+  - session[:search] = params[:search]
+
+Rails console
+  - Look at actual instances
